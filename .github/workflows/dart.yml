@@ -48,7 +48,7 @@ jobs:
       - name: Upgrade dependencies
         run: dart pub upgrade
       - name: Run tests (VM)
-        run: dart test --platform vm --coverage=./coverage
+        run: dart test -j 1 --platform vm --coverage=./coverage
       - name: Generate coverage report
         run: |
           dart pub global activate coverage
