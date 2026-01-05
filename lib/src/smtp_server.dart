@@ -73,7 +73,7 @@ class SMTPServer {
 class _SMTPClientHandler {
   final int serverPort;
 
-  Socket socket;
+  Socket _socket;
   bool _closed = false;
   Object? _error;
 
@@ -102,16 +102,16 @@ class _SMTPClientHandler {
 
   _SMTPClientHandler({
     required this.serverPort,
-    required this.socket,
+    required Socket socket,
     required this.hostname,
     required this.securityContext,
     required this.authProvider,
     required this.mailBoxStore,
     required this.emailDeliveryClient,
-  }) {
+  }) : _socket = socket {
     try {
-      remoteAddress = socket.remoteAddress;
-      remotePort = socket.remotePort;
+      remoteAddress = _socket.remoteAddress;
+      remotePort = _socket.remotePort;
     } catch (_) {}
   }
 
@@ -119,8 +119,8 @@ class _SMTPClientHandler {
       'SMTP[$serverPort]-Client[${remoteAddress.address}:$remotePort]';
 
   Future<void> handle() async {
-    socket.write('220 $hostname ESMTP Ready\r\n');
-    _bind(socket, false);
+    _socket.write('220 $hostname ESMTP Ready\r\n');
+    _bind(_socket, false);
   }
 
   final List<String> _allLines = [];
@@ -162,7 +162,7 @@ class _SMTPClientHandler {
     // QUIT
     else if (line == 'QUIT') {
       send('221 Bye');
-      await socket.flush();
+      await _socket.flush();
       Future.delayed(Duration(milliseconds: 10));
       _close();
     }
@@ -259,8 +259,8 @@ class _SMTPClientHandler {
   Future<void> _startTLS() async {
     _log.info("$info Upgrading to TLS...");
     subscription?.pause();
-    final secure = await SecureSocket.secureServer(socket, securityContext);
-    socket = secure;
+    final secure = await SecureSocket.secureServer(_socket, securityContext);
+    _socket = secure;
     tls = true;
     _bind(secure, true);
     _log.info("$info Started TLS!");
@@ -297,7 +297,7 @@ class _SMTPClientHandler {
     _closed = true;
     subscription?.cancel();
     subscription = null;
-    socket.destroy();
+    _socket.destroy();
   }
 
   Future<void> onReceiveEmail({

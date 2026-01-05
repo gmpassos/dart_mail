@@ -82,7 +82,7 @@ class IMAPServer {
 class _IMAPClientHandler {
   final int serverPort;
 
-  Socket socket;
+  Socket _socket;
   bool _closed = false;
   Object? _error;
 
@@ -105,18 +105,18 @@ class _IMAPClientHandler {
 
   _IMAPClientHandler({
     required this.serverPort,
-    required this.socket,
+    required Socket socket,
     required this.hostname,
     required this.mailboxStore,
     required this.authProvider,
     required this.securityContext,
     required this.imaps,
-  }) {
+  }) : _socket = socket {
     tls = imaps;
 
     try {
-      remoteAddress = socket.remoteAddress;
-      remotePort = socket.remotePort;
+      remoteAddress = _socket.remoteAddress;
+      remotePort = _socket.remotePort;
     } catch (_) {}
   }
 
@@ -124,8 +124,8 @@ class _IMAPClientHandler {
       '${imaps ? 'IMAPS' : 'IMAP'}[$serverPort]-Client[${remoteAddress.address}:$remotePort]';
 
   Future<void> handle() async {
-    socket.write('* OK [$hostname] IMAP4rev1 Ready\r\n');
-    _bind(socket);
+    _socket.write('* OK [$hostname] IMAP4rev1 Ready\r\n');
+    _bind(_socket);
   }
 
   final List<String> _allLines = [];
@@ -217,7 +217,7 @@ class _IMAPClientHandler {
             for (var i = 0; i < messages.length; i++) {
               final msg = messages[i];
               send('* ${i + 1} FETCH (UID ${i + 1} RFC822 {${msg.length}}');
-              socket.write(msg);
+              _socket.write(msg);
               send(')');
             }
             send('$tag OK FETCH completed');
@@ -229,6 +229,7 @@ class _IMAPClientHandler {
         {
           send('* BYE Logging out');
           send('$tag OK LOGOUT completed');
+          await _socket.flush();
           await Future.delayed(const Duration(milliseconds: 10));
           close();
           _log.info("$info Logout: $user");
@@ -253,8 +254,8 @@ class _IMAPClientHandler {
   Future<void> _startTLS() async {
     _log.info("$info Upgrading to TLS...");
     subscription?.pause();
-    final secure = await SecureSocket.secureServer(socket, securityContext);
-    socket = secure;
+    final secure = await SecureSocket.secureServer(_socket, securityContext);
+    _socket = secure;
     tls = true;
     _bind(secure);
     _log.info("$info Started TLS!");
@@ -291,6 +292,6 @@ class _IMAPClientHandler {
     _closed = true;
     subscription?.cancel();
     subscription = null;
-    socket.destroy();
+    _socket.destroy();
   }
 }
