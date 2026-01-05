@@ -31,6 +31,10 @@ void _onRecord(logging.LogRecord record) {
   Future.delayed(Duration(milliseconds: 100));
 }
 
+Future<void> flushLogs() async {
+  await Future.delayed(Duration(milliseconds: 300));
+}
+
 Zone safeZone() => Zone.current.fork(
   specification: ZoneSpecification(handleUncaughtError: _handleUncaughtError),
 );

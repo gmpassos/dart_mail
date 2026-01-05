@@ -37,6 +37,8 @@ void _runTets() {
   });
 
   tearDown(() async {
+    // Allow log flush before finish test:
+    await flushLogs();
     await server.close();
   });
 
