@@ -81,7 +81,11 @@ class IMAPServer {
 
 class _IMAPClientHandler {
   final int serverPort;
+
   Socket socket;
+  bool _closed = false;
+  Object? _error;
+
   final String hostname;
   final MailboxStore mailboxStore;
   final AuthProvider authProvider;
@@ -95,7 +99,6 @@ class _IMAPClientHandler {
 
   StreamSubscription? subscription;
   late void Function(String) send;
-  Object? error;
 
   late final InternetAddress remoteAddress;
   late final int remotePort;
@@ -128,6 +131,8 @@ class _IMAPClientHandler {
   final List<String> _allLines = [];
 
   void _onLine(String line) async {
+    if (_closed) return;
+
     _allLines.add(line);
 
     final parts = line.split(' ');
@@ -156,6 +161,7 @@ class _IMAPClientHandler {
             send('$tag NO STARTTLS required before login');
             break;
           }
+
           if (authProvider.validate(username, password)) {
             authenticated = true;
             user = username;
@@ -185,6 +191,7 @@ class _IMAPClientHandler {
       case 'SELECT':
         {
           if (!_checkAuth(tag)) break;
+
           final messagesCount = await mailboxStore.countMessagesUIDs(user!);
           send('* $messagesCount EXISTS');
           send('* FLAGS (\\Seen)');
@@ -195,6 +202,7 @@ class _IMAPClientHandler {
       case 'UID':
         {
           if (!_checkAuth(tag)) break;
+
           final sub = parts[2].toUpperCase();
 
           if (sub == 'SEARCH') {
@@ -221,7 +229,8 @@ class _IMAPClientHandler {
         {
           send('* BYE Logging out');
           send('$tag OK LOGOUT completed');
-          socket.close();
+          await Future.delayed(const Duration(milliseconds: 10));
+          close();
           _log.info("$info Logout: $user");
           return;
         }
@@ -255,15 +264,33 @@ class _IMAPClientHandler {
     subscription = utf8.decoder
         .bind(socket)
         .transform(const LineSplitter())
-        .listen(_onLine);
+        .listen(_onLine, onDone: _onDone, onError: _onError);
 
     send = (v) {
-      socket.write('$v\r\n');
+      if (_closed) return;
+
       try {
         socket.write('$v\r\n');
       } catch (e) {
-        error = e;
+        _error ??= e;
       }
     };
+  }
+
+  void _onDone() {
+    _closed = true;
+  }
+
+  void _onError(Object error, StackTrace stackTrace) {
+    _closed = true;
+    _error ??= error;
+    _log.severe("Socker error> $error", error, stackTrace);
+  }
+
+  void close() {
+    _closed = true;
+    subscription?.cancel();
+    subscription = null;
+    socket.destroy();
   }
 }

@@ -72,14 +72,17 @@ class SMTPServer {
 
 class _SMTPClientHandler {
   final int serverPort;
+
   Socket socket;
+  bool _closed = false;
+  Object? _error;
+
   final String hostname;
   final SecurityContext securityContext;
   final AuthProvider authProvider;
   final MailboxStore mailBoxStore;
   final EmailDeliveryClient emailDeliveryClient;
 
-  bool closed = false;
   bool tls = false;
   bool auth = false;
   String? authUser;
@@ -93,7 +96,6 @@ class _SMTPClientHandler {
 
   StreamSubscription? subscription;
   late void Function(String) send;
-  Object? error;
 
   late final InternetAddress remoteAddress;
   late final int remotePort;
@@ -124,7 +126,7 @@ class _SMTPClientHandler {
   final List<String> _allLines = [];
 
   void _onLine(final String line) async {
-    if (closed || error != null) return;
+    if (_closed) return;
 
     _allLines.add(line);
 
@@ -268,31 +270,33 @@ class _SMTPClientHandler {
     subscription = utf8.decoder
         .bind(socket)
         .transform(const LineSplitter()) // split by line
-        .listen(
-          _onLine,
-          onDone: () {
-            socket.destroy();
-          },
-          onError: (e) {
-            error = e;
-            socket.destroy();
-          },
-        );
+        .listen(_onLine, onDone: _onDone, onError: _onError);
 
     send = (v) {
+      if (_closed) return;
+
       try {
         socket.write('$v\r\n');
       } catch (e) {
-        error = e;
+        _error ??= e;
       }
     };
   }
 
+  void _onDone() {
+    _closed = true;
+  }
+
+  void _onError(Object error, StackTrace stackTrace) {
+    _closed = true;
+    _error ??= error;
+    _log.severe("Socker error> $error", error, stackTrace);
+  }
+
   void _close() {
-    closed = true;
+    _closed = true;
     subscription?.cancel();
     subscription = null;
-    socket.close();
     socket.destroy();
   }
 
