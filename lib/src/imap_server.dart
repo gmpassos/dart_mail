@@ -13,7 +13,7 @@ class IMAPServer {
   final String hostname;
   final SecurityContext securityContext;
   final MailboxStore mailboxStore;
-  final SMTPAuthProvider authProvider;
+  final AuthProvider authProvider;
 
   final int imapsPort;
   final int imapPort;
@@ -84,7 +84,7 @@ class _IMAPClientHandler {
   Socket socket;
   final String hostname;
   final MailboxStore mailboxStore;
-  final SMTPAuthProvider authProvider;
+  final AuthProvider authProvider;
   final SecurityContext securityContext;
   final bool imaps;
 

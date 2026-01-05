@@ -1,5 +1,5 @@
 /// Credential & authentication resolver
-abstract class SMTPAuthProvider {
+abstract class AuthProvider {
   bool hasUser(String username);
 
   List<String> existingUsers(List<String> usernames) =>
@@ -9,7 +9,7 @@ abstract class SMTPAuthProvider {
 }
 
 /// Simple in-memory auth provider
-class MapAuthProvider extends SMTPAuthProvider {
+class MapAuthProvider extends AuthProvider {
   final Map<String, String> users;
 
   MapAuthProvider(this.users);

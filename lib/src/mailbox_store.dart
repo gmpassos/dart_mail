@@ -9,7 +9,7 @@ import 'auth_provider.dart';
 
 /// Mail storage abstraction
 abstract class MailboxStore {
-  final SMTPAuthProvider authProvider;
+  final AuthProvider authProvider;
 
   MailboxStore(this.authProvider);
 

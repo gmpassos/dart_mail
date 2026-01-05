@@ -17,7 +17,7 @@ class SMTPServer {
   final int port;
   final String hostname;
   final SecurityContext securityContext;
-  final SMTPAuthProvider authProvider;
+  final AuthProvider authProvider;
   final MailboxStore mailboxStore;
   final EmailDeliveryClient emailDeliveryClient;
 
@@ -75,7 +75,7 @@ class _SMTPClientHandler {
   Socket socket;
   final String hostname;
   final SecurityContext securityContext;
-  final SMTPAuthProvider authProvider;
+  final AuthProvider authProvider;
   final MailboxStore mailBoxStore;
   final EmailDeliveryClient emailDeliveryClient;
 
