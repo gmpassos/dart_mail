@@ -8,6 +8,10 @@ import 'localhost_cert.dart';
 import 'logging.dart';
 
 void main() {
+  safeZone().runGuarded(_runTets);
+}
+
+void _runTets() {
   logToConsole();
 
   final localhostSecurityContext = loadLocalhostSecurityContext();

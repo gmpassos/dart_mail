@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:logging/logging.dart' as logging;
 
 void logToConsole() {
@@ -25,6 +27,23 @@ void _onRecord(logging.LogRecord record) {
   }
 
   print(s);
+
+  Future.delayed(Duration(milliseconds: 100));
+}
+
+Zone safeZone() => Zone.current.fork(
+  specification: ZoneSpecification(handleUncaughtError: _handleUncaughtError),
+);
+
+void _handleUncaughtError(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  Object error,
+  StackTrace stackTrace,
+) {
+  print("✖ [UncaughtError] $error");
+  print(stackTrace);
 
   Future.delayed(Duration(milliseconds: 100));
 }
