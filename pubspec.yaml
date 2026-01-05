@@ -7,6 +7,11 @@ publish_to: none
 environment:
   sdk: ^3.10.0
 
+false_secrets:
+  ## Contains a `localhost` private key and certificate
+  ## for tests/benchmarks of TLS connections:
+  - test/localhost_cert.dart
+
 # Add regular dependencies here.
 dependencies:
   collection: ^1.19.1
