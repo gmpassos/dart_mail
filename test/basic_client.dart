@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart' as logging;
 import 'package:test/test.dart';
+
+final _log = logging.Logger('test/BasicClient');
 
 class BasicClient {
   Socket _socket;
@@ -11,9 +14,18 @@ class BasicClient {
   final List<String> lines = [];
   Completer<String>? _waitingLine;
 
+  InternetAddress? _remoteAddress;
+  int? _remotePort;
+
   BasicClient(this._socket) {
+    try {
+      _remoteAddress = _socket.remoteAddress;
+      _remotePort = _socket.remotePort;
+    } catch (_) {}
     _bind(_socket);
   }
+
+  String get info => 'BasicClient[$_remoteAddress:$_remotePort]';
 
   void _bind(Socket socket) {
     _subscription = utf8.decoder
@@ -28,7 +40,11 @@ class BasicClient {
   }
 
   void send(String line) {
-    _socket.write('$line\r\n');
+    try {
+      _socket.write('$line\r\n');
+    } catch (e, s) {
+      _log.severe("$info Error writing to socket!", e, s);
+    }
   }
 
   void _notifyLine(String line) {
