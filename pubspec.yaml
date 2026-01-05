@@ -19,6 +19,7 @@ dependencies:
 dev_dependencies:
   lints: ^6.0.0
   test: ^1.28.0
+  dependency_validator: ^5.0.3
   mailer: ^6.6.0
 
 #dependency_overrides:
