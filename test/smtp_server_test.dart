@@ -76,6 +76,7 @@ void main() async {
     });
 
     tearDown(() async {
+      await flushLogs();
       await server.close();
     });
 
@@ -187,6 +188,7 @@ void main() async {
     });
 
     tearDown(() async {
+      await flushLogs();
       await server.close();
     });
 

@@ -10,6 +10,8 @@ final _log = logging.Logger('test/BasicClient');
 class BasicClient {
   Socket _socket;
   StreamSubscription? _subscription;
+  bool _closed = false;
+  Object? _error;
 
   final List<String> lines = [];
   Completer<String>? _waitingLine;
@@ -31,7 +33,7 @@ class BasicClient {
     _subscription = utf8.decoder
         .bind(socket)
         .transform(const LineSplitter())
-        .listen(_onLine);
+        .listen(_onLine, onDone: _onDone, onError: _onError);
   }
 
   void _onLine(String line) {
@@ -39,7 +41,26 @@ class BasicClient {
     _notifyLine(line);
   }
 
+  void _onDone() {
+    _closed = true;
+  }
+
+  void _onError(Object error, StackTrace stackTrace) {
+    _closed = true;
+    _error ??= error;
+    _log.severe("Socket error> $error", error, stackTrace);
+  }
+
   void send(String line) {
+    if (_closed) {
+      _log.warning(
+        "$info Attempting to write on closed socket",
+        null,
+        StackTrace.current,
+      );
+      return;
+    }
+
     try {
       _socket.write('$line\r\n');
     } catch (e, s) {
@@ -90,6 +111,7 @@ class BasicClient {
   }
 
   void close() {
+    _closed = true;
     _socket.destroy();
   }
 }
