@@ -134,9 +134,10 @@ class _SMTPClientHandler {
     if (inData) {
       if (line == '.') {
         inData = false;
-        await onReceiveEmail(from: mailFrom!, to: rcpt, body: data.toString());
+        var body = data.toString();
         data.clear();
-        send('250 OK');
+        await onReceiveEmail(from: mailFrom!, to: rcpt, body: body);
+        send('250 2.0.0 Message accepted for delivery');
       } else {
         data.writeln(line);
       }
