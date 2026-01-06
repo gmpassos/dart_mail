@@ -127,7 +127,8 @@ void main() async {
       client.send('.');
 
       await client.expectLine(
-        (l) => l.join('\n').contains('\n250 OK'),
+        (l) =>
+            l.join('\n').contains('\n250 2.0.0 Message accepted for delivery'),
         const Duration(seconds: 45),
       );
 
