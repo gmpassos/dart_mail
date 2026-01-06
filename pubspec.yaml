@@ -1,6 +1,6 @@
 name: dart_mail
 description: A pure Dart email stack featuring SMTP and IMAP servers, DNS MX resolution, and email relay support.
-version: 1.0.1
+version: 1.0.0
 repository: https://github.com/gmpassos/dart_mail
 
 environment:
