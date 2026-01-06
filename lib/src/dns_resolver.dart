@@ -47,14 +47,14 @@ class DNSOverHttpsResolver implements DNSResolver {
   @override
   Future<List<MXRecord>> resolveMX(String domain) async {
     // Get full MX DNS records
-    final record = await client.lookupRecord(domain, type: DnsRecordType.MX);
+    final record = await client.lookupHttpsByRRType(domain, RRType.MX);
 
     final answers = record.answer ?? [];
 
     final mxRecords = <MXRecord>[];
 
     for (var answer in answers) {
-      if (answer.recordType == DnsRecordType.MX) {
+      if (answer.type == RRType.MX.value) {
         // MX data format: "priority mailserver"
         // Example: "10 mail.example.com."
         final parts = answer.data.split(' ');
